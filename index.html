@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Button Frame with Chevron</title>
+  <style>
+    html,body { height:100%; margin:0; }
+    body { font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif; }
+
+    /* Hero background */
+    .hero { position:relative; width:1920px; max-width:100%; height:90svh; margin:0 auto; display:flex; flex-direction:column; align-items:flex-start; justify-content:flex-end; padding:0 5% 8%; background-image:url('images/pexels-binyaminmellish-1396122.jpg'); background-size:cover; background-position:center; box-sizing:border-box; }
+    /* 50% black filter over the background */
+    .hero::before { content:""; position:absolute; inset:0; background:rgba(0,0,0,0.5); z-index:1; }
+
+    /* Heading + subheading */
+    .hero-text { position:relative; z-index:2; max-width:620px; margin-bottom:28px; }
+    .hero-text h1 { font-family:'Greycliff CF', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; font-size:clamp(2rem, 4vw, 3.25rem); font-weight:800; line-height:1.15; color:#fff; margin:0 0 16px; }
+    .hero-text p { font-family:system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; font-size:clamp(0.95rem, 1.3vw, 1.125rem); line-height:1.55; color:rgba(255,255,255,0.88); margin:0; }
+
+    /* Button sits above the overlay */
+    .btn-wrap { position:relative; width:220px; height:60px; z-index:2; transition:transform .18s ease, box-shadow .18s ease; }
+    .btn-wrap svg.button-frame { display:block; width:100%; height:100%; }
+    .btn-wrap svg.chevron { position:absolute; top:0; right:0; height:100%; width:100%; z-index:2; pointer-events:none; overflow:visible; }
+    .btn-label { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#055641; font-family:'Greycliff CF', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; font-weight:700; font-size:1.125rem; letter-spacing:0.2px; z-index:3; pointer-events:none; transition:color .18s ease; }
+
+    /* Link + hover state */
+    .btn-link { display:inline-block; text-decoration:none; }
+    .btn-link:hover .btn-wrap { transform:translateY(-4px); box-shadow:0 10px 30px rgba(0,0,0,0.25); }
+  </style>
+</head>
+<body>
+  <div class="hero">
+    <div class="hero-text">
+      <h1>Building Products For a Beautiful, Healthy Home Inside and Out</h1>
+      <p>Quarrix offers durable, efficient roofing solutions and building products that enhance your home's beauty and protect it for years to come.</p>
+    </div>
+    <a class="btn-link" href="https://quarrix.test/contact-us/" aria-label="Get Started">
+      <div class="btn-wrap" aria-hidden="false">
+      <!-- Button Frame (from attachment) -->
+      <svg class="button-frame" width="220" height="60" viewBox="0 0 224 61" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Button frame">
+        <path d="M0.5 0.5H205.5L222.5 30.5L205.5 60.5H0.5L0.5 30.7887L0.5 0.5Z" fill="white" stroke="white"/>
+      </svg>
+
+      <!-- Green chevron overlay masked to button outline -->
+      <svg class="chevron" viewBox="0 0 224 61" preserveAspectRatio="xMinYMid meet" aria-hidden="true" focusable="false" role="img">
+        <defs>
+          <clipPath id="btn-clip">
+            <path d="M0.5 0.5H205.5L222.5 30.5L205.5 60.5H0.5L0.5 30.7887L0.5 0.5Z" />
+          </clipPath>
+        </defs>
+        <g clip-path="url(#btn-clip)">
+          <!-- place chevron in button coordinate space; its natural width is 28, height 61 -->
+          <g id="chev-group">
+            <path id="chev-path" d="M10.0166 0.25L10.0889 0.376953L27.0889 30.377L27.1582 30.5L27.0889 30.623L10.0889 60.623L10.0166 60.75H0.435547L0.655273 60.374L18.0811 30.5L0.655273 0.625977L0.435547 0.25H10.0166Z" fill="#42814D" stroke="#42814D" stroke-width="0.5"/>
+          </g>
+          <g id="fat-chev-group">
+            <path id="fat-chev-path" d="M19.9795 0.25L20.0518 0.376953L37.0518 30.377L37.1211 30.5L37.0518 30.623L20.0518 60.623L19.9795 60.75H0.416992L0.613281 60.3828L16.5508 30.5L0.613281 0.617188L0.416992 0.25H19.9795Z" fill="#42814D" stroke="#42814D" stroke-width="0.5"/>
+          </g>
+        </g>
+      </svg>
+      <div class="btn-label">Get Started</div>
+      </div>
+      </a>
+    </div>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        const link = document.querySelector('.btn-link');
+        const btnWrap = document.querySelector('.btn-wrap');
+        const chevSvg = document.querySelector('.chevron');
+        const chevGroup = document.getElementById('chev-group');
+        const chevPath = document.getElementById('chev-path');
+        const fatGroup = document.getElementById('fat-chev-group');
+        const fatPath = document.getElementById('fat-chev-path');
+        let animating = false;
+
+        if (!link || !btnWrap || !chevSvg || !chevGroup || !chevPath || !fatGroup || !fatPath) return;
+
+        // compute travel and start positions (in CSS pixels) for a given path element
+        function computePositionsFor(pathElem, marginView = 0) {
+          const btnRect = btnWrap.getBoundingClientRect();
+          const vb = chevSvg.viewBox.baseVal;
+          const vbWidth = vb.width || 224;
+          const pathBBox = pathElem.getBBox();
+          const travelView = Math.max(0, vbWidth - (pathBBox.x + pathBBox.width));
+          const startView = -(pathBBox.x + pathBBox.width + marginView); // left outside with optional margin
+          const scale = btnRect.width / vbWidth;
+          return {
+            travelPx: Math.round(travelView * scale),
+            startPx: Math.round(startView * scale),
+            vbWidth: vbWidth,
+            pathBBox: pathBBox
+          };
+        }
+
+        // small chevron rest (right-aligned)
+        function setSmallRest() {
+          const smallPos = computePositionsFor(chevPath);
+          chevGroup.style.transform = `translateX(${smallPos.travelPx}px)`;
+        }
+
+        // fat chevron rest (off-left, at -100% of button width)
+        function computeFatPositions(pathElem) {
+          const btnRect = btnWrap.getBoundingClientRect();
+          const vb = chevSvg.viewBox.baseVal;
+          const vbWidth = vb.width || 224;
+          const pathBBox = pathElem.getBBox();
+          const travelView = Math.max(0, vbWidth - (pathBBox.x + pathBBox.width));
+          const scale = btnRect.width / vbWidth;
+          return {
+            travelPx: Math.round(travelView * scale),
+            // start at -100% of the rendered button width (fully off to the left)
+            startPx: Math.round(-btnRect.width),
+            vbWidth: vbWidth,
+            pathBBox: pathBBox
+          };
+        }
+
+        function setFatRest() {
+          const fatPos = computeFatPositions(fatPath);
+          fatGroup.style.transform = `translateX(${fatPos.startPx}px)`;
+        }
+
+        setSmallRest();
+        setFatRest();
+        window.addEventListener('resize', function(){ setSmallRest(); setFatRest(); });
+
+        link.addEventListener('mouseenter', function () {
+          if (animating) return;
+          animating = true;
+
+          const smallPos = computePositionsFor(chevPath);
+          const fatPos = computeFatPositions(fatPath);
+
+          const smallDuration = 140; // per-pass duration used previously
+          const fatDuration = Math.round(smallDuration / 0.9); // 90% speed (longer duration)
+
+          // start small at left edge, animate 3 times then rest at right
+          chevGroup.style.transform = `translateX(0px)`;
+          const smallAnim = chevGroup.animate([
+            { transform: 'translateX(0px)' },
+            { transform: `translateX(${smallPos.travelPx}px)` }
+          ], {
+            duration: smallDuration,
+            iterations: 3,
+            easing: 'ease-in-out',
+            fill: 'forwards'
+          });
+
+          // start fat at left-outside (-100% width), animate to right across twice, then reset to left-outside
+          fatGroup.style.transform = `translateX(${fatPos.startPx}px)`;
+          const fatAnim = fatGroup.animate([
+            { transform: `translateX(${fatPos.startPx}px)` },
+            { transform: `translateX(${fatPos.travelPx}px)` }
+          ], {
+            duration: fatDuration,
+            iterations: 2,
+            easing: 'ease-in-out',
+            fill: 'forwards'
+          });
+
+          smallAnim.onfinish = function () {
+            // cancel animation playback so it no longer controls computed transforms,
+            // then restore only the small chevron to its right-aligned rest
+            try { smallAnim.cancel(); } catch(e) {}
+            requestAnimationFrame(function(){ setSmallRest(); animating = false; });
+          };
+
+          fatAnim.onfinish = function () {
+            // cancel the fat animation and explicitly reset it to the off-left rest
+            try { fatAnim.cancel(); } catch(e) {}
+            requestAnimationFrame(function(){ setFatRest(); });
+          };
+        });
+      });
+    </script>
+</body>
+</html>
