@@ -70,7 +70,7 @@
     </div><!-- .hero-container -->
     </div><!-- .hero -->
     <script>
-      document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function () {
         const link = document.querySelector('.btn-link');
         const btnWrap = document.querySelector('.btn-wrap');
         const chevSvg = document.querySelector('.chevron');
@@ -79,8 +79,11 @@
         const fatGroup = document.getElementById('fat-chev-group');
         const fatPath = document.getElementById('fat-chev-path');
         let animating = false;
-
+        
         if (!link || !btnWrap || !chevSvg || !chevGroup || !chevPath || !fatGroup || !fatPath) return;
+
+          // Respect user motion preference
+          const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
         // compute travel and start positions (in CSS pixels) for a given path element
         function computePositionsFor(pathElem, marginView = 0) {
@@ -138,34 +141,40 @@
           const smallPos = computePositionsFor(chevPath);
           const fatPos = computeFatPositions(fatPath);
 
-          const smallDuration = 140; // per-pass duration used previously
-          const fatDuration = Math.round(smallDuration / 0.9); // 90% speed (longer duration)
+          // Slower, fewer passes for a less frenetic feel
+          const smallDuration = 320; // ms per-pass, slower than before
+          const fatDuration = Math.round(smallDuration / 0.9); // keep relative pacing
+
+          const passDelay = 40; // small delay before animations start
 
           // start small at left edge, animate 3 times then rest at right
-          chevGroup.style.transform = `translateX(0px)`;
-          const smallAnim = chevGroup.animate([
-            { transform: 'translateX(0px)' },
-            { transform: `translateX(${smallPos.travelPx}px)` }
-          ], {
-            duration: smallDuration,
-            iterations: 3,
-            easing: 'ease-in-out',
-            fill: 'forwards'
-          });
+          if (!prefersReduced) {
+            chevGroup.style.transform = `translateX(0px)`;
+            const smallAnim = chevGroup.animate([
+              { transform: 'translateX(0px)' },
+              { transform: `translateX(${smallPos.travelPx}px)` }
+            ], {
+              duration: smallDuration,
+              delay: passDelay,
+              iterations: 2,
+              easing: 'ease-in-out',
+              fill: 'forwards'
+            });
 
           // start fat at left-outside (-100% width), animate to right across twice, then reset to left-outside
-          fatGroup.style.transform = `translateX(${fatPos.startPx}px)`;
-          const fatAnim = fatGroup.animate([
-            { transform: `translateX(${fatPos.startPx}px)` },
-            { transform: `translateX(${fatPos.travelPx}px)` }
-          ], {
-            duration: fatDuration,
-            iterations: 2,
-            easing: 'ease-in-out',
-            fill: 'forwards'
-          });
+            fatGroup.style.transform = `translateX(${fatPos.startPx}px)`;
+            const fatAnim = fatGroup.animate([
+              { transform: `translateX(${fatPos.startPx}px)` },
+              { transform: `translateX(${fatPos.travelPx}px)` }
+            ], {
+              duration: fatDuration,
+              delay: passDelay,
+              iterations: 1,
+              easing: 'ease-in-out',
+              fill: 'forwards'
+            });
 
-          smallAnim.onfinish = function () {
+            smallAnim.onfinish = function () {
             // cancel animation playback so it no longer controls computed transforms,
             // then restore only the small chevron to its right-aligned rest
             try { smallAnim.cancel(); } catch(e) {}
@@ -177,6 +186,7 @@
             try { fatAnim.cancel(); } catch(e) {}
             requestAnimationFrame(function(){ setFatRest(); });
           };
+          } // end prefersReduced check
         });
       });
     </script>
