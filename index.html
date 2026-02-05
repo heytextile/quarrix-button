@@ -141,9 +141,10 @@
           const smallPos = computePositionsFor(chevPath);
           const fatPos = computeFatPositions(fatPath);
 
-          // Slower, fewer passes for a less frenetic feel
-          const smallDuration = 320; // ms per-pass, slower than before
-          const fatDuration = Math.round(smallDuration / 0.9); // keep relative pacing
+          // Slower, fewer passes for a less frenetic feel (30% slower requested)
+          const smallDuration = 416; // ms per-pass (320 * 1.3 = 416)
+          // fat chevron runs at 180% of the small chevron's duration (much slower)
+          const fatDuration = Math.round(smallDuration * 1.8);
 
           const passDelay = 40; // small delay before animations start
 
